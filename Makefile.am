@@ -113,7 +113,9 @@ nodist_weston_SOURCES =					\
 	protocol/scaler-protocol.c			\
 	protocol/scaler-server-protocol.h		\
 	protocol/linux-dmabuf-protocol.c		\
-	protocol/linux-dmabuf-server-protocol.h
+	protocol/linux-dmabuf-server-protocol.h		\
+	protocol/relative-pointer-protocol.c		\
+	protocol/relative-pointer-server-protocol.h
 
 BUILT_SOURCES += $(nodist_weston_SOURCES)
 
@@ -1337,7 +1339,8 @@ EXTRA_DIST +=					\
 	protocol/scaler.xml			\
 	protocol/ivi-application.xml		\
 	protocol/ivi-hmi-controller.xml		\
-	protocol/linux-dmabuf.xml
+	protocol/linux-dmabuf.xml		\
+	protocol/relative-pointer.xml
 
 #
 # manual test modules in tests subdirectory

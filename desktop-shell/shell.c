@@ -836,7 +836,8 @@ focus_state_surface_destroy(struct wl_listener *listener, void *data)
 	shell = state->seat->compositor->shell_interface.shell;
 	if (next) {
 		state->keyboard_focus = NULL;
-		activate(shell, next, state->seat, true);
+		activate(shell, next, state->seat,
+		         WESTON_ACTIVATE_FLAG_CONFIGURE);
 	} else {
 		if (shell->focus_animation_type == ANIMATION_DIM_LAYER) {
 			if (state->ws->focus_animation)
@@ -2092,10 +2093,12 @@ busy_cursor_grab_button(struct weston_pointer_grab *base,
 	struct weston_seat *seat = pointer->seat;
 
 	if (shsurf && button == BTN_LEFT && state) {
-		activate(shsurf->shell, shsurf->view, seat, true);
+		activate(shsurf->shell, shsurf->view, seat,
+		         WESTON_ACTIVATE_FLAG_CONFIGURE);
 		surface_move(shsurf, pointer, false);
 	} else if (shsurf && button == BTN_RIGHT && state) {
-		activate(shsurf->shell, shsurf->view, seat, true);
+		activate(shsurf->shell, shsurf->view, seat,
+			 WESTON_ACTIVATE_FLAG_CONFIGURE);
 		surface_rotate(shsurf, pointer);
 	}
 }
@@ -5153,7 +5156,7 @@ lower_fullscreen_layer(struct desktop_shell *shell,
 
 void
 activate(struct desktop_shell *shell, struct weston_view *view,
-	 struct weston_seat *seat, bool configure)
+	 struct weston_seat *seat, enum weston_activate_flag flags)
 {
 	struct weston_surface *es = view->surface;
 	struct weston_surface *main_surface;
@@ -5179,7 +5182,8 @@ activate(struct desktop_shell *shell, struct weston_view *view,
 	old_es = state->keyboard_focus;
 	focus_state_set_focus(state, es);
 
-	if (shsurf->state.fullscreen && configure)
+	if (shsurf->state.fullscreen &&
+	    flags & WESTON_ACTIVATE_FLAG_CONFIGURE)
 		shell_configure_fullscreen(shsurf);
 	else
 		restore_output_mode(shsurf->output);
@@ -5214,7 +5218,8 @@ is_black_surface (struct weston_surface *es, struct weston_surface **fs_surface)
 static void
 activate_binding(struct weston_seat *seat,
 		 struct desktop_shell *shell,
-		 struct weston_surface *focus)
+		 struct weston_surface *focus,
+		 enum weston_activate_flag flags)
 {
 	struct weston_surface *main_surface;
 	struct weston_view *focus_view;
@@ -5230,7 +5235,7 @@ activate_binding(struct weston_seat *seat,
 	if (get_shell_surface_type(main_surface) == SHELL_SURFACE_NONE)
 		return;
 
-	activate(shell, focus_view, seat, true);
+	activate(shell, focus_view, seat, flags);
 }
 
 static void
@@ -5242,7 +5247,8 @@ click_to_activate_binding(struct weston_pointer *pointer, uint32_t time,
 	if (pointer->focus == NULL)
 		return;
 
-	activate_binding(pointer->seat, data, pointer->focus->surface);
+	activate_binding(pointer->seat, data, pointer->focus->surface,
+			 WESTON_ACTIVATE_FLAG_CONFIGURE);
 }
 
 static void
@@ -5254,7 +5260,8 @@ touch_to_activate_binding(struct weston_touch *touch, uint32_t time,
 	if (touch->focus == NULL)
 		return;
 
-	activate_binding(touch->seat, data, touch->focus->surface);
+	activate_binding(touch->seat, data, touch->focus->surface,
+			 WESTON_ACTIVATE_FLAG_CONFIGURE);
 }
 
 static void
@@ -5679,7 +5686,8 @@ map(struct desktop_shell *shell, struct shell_surface *shsurf,
 		if (shell->locked)
 			break;
 		wl_list_for_each(seat, &compositor->seat_list, link)
-			activate(shell, shsurf->view, seat, true);
+			activate(shell, shsurf->view, seat,
+				 WESTON_ACTIVATE_FLAG_CONFIGURE);
 		break;
 	case SHELL_SURFACE_POPUP:
 	case SHELL_SURFACE_NONE:
@@ -6091,9 +6099,12 @@ switcher_destroy(struct switcher *switcher)
 		weston_surface_damage(view->surface);
 	}
 
-	if (switcher->current)
+	if (switcher->current) {
 		activate(switcher->shell, switcher->current,
-			 keyboard->seat, true);
+			 keyboard->seat,
+			 WESTON_ACTIVATE_FLAG_CONFIGURE);
+	}
+
 	wl_list_remove(&switcher->listener.link);
 	weston_keyboard_end_grab(keyboard);
 	if (keyboard->input_method_resource)

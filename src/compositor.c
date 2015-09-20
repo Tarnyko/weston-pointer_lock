@@ -4488,6 +4488,7 @@ weston_compositor_create(struct wl_display *display, void *user_data)
 	ec->session_active = 1;
 
 	ec->output_id_pool = 0;
+	ec->activate_serial = 1;
 	ec->repaint_msec = DEFAULT_REPAINT_WINDOW;
 
 	if (!wl_global_create(ec->wl_display, &wl_compositor_interface, 3,
